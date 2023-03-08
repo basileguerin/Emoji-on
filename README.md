@@ -5,7 +5,7 @@ Réaliser une application pour détecter l'émotion d'un visage capturé par une
 # Documents
 
 - `emotion-detector.ipynb` réalise les étapes pour créer et entraîner un CNN
-- `emotion.py` contient le script de l'application
+- `app.py` contient le script de l'application
 
 # Données
 
