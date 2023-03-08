@@ -18,30 +18,28 @@ def prediction(image, model):
     image = tf.expand_dims(image, 0)
     return class_names[np.argmax(model.predict(image))]
 
-def image_over(emoji, frame, faces):
-    """Remplace les visages capturés dans une frame par un emoji"""
-    
+def image_over(emoji, frame, coord):
+    """Remplace le visage capturé dans une frame par un emoji"""
     # Copie de la frame
     result_image = frame.copy()
-    
-    # On parcourt les visages
-    for (x, y, w, h) in faces:
-        # Creation de l'emoji de la bonne taille
-        this_detection_over = cv2.resize(emoji, (h, w))
-
-        # Conversion des pixels transparents pour match l'image du dessous
-        add_x, add_y = 0, 0
-        for pixel_row in this_detection_over:
-            add_x = 0
-            add_y += 1
-            for pixel in pixel_row:
-                add_x += 1
-                if pixel[3] == 0:
-                    this_detection_over[add_y - 1, add_x - 1] = result_image[y + add_y - 1, x + add_x - 1]
-
-        # Ajout de l'emoji sur le visage
-        result_image[y:y+h, x:x+w] = this_detection_over
-
+    # Coordonnées
+    x = coord[0]
+    y = coord[1]
+    w = coord[2]
+    h = coord[3]
+    # Creation de l'emoji de la bonne taille
+    this_detection_over = cv2.resize(emoji, (h, w))
+    # Conversion des pixels transparents pour match l'image du dessous
+    add_x, add_y = 0, 0
+    for pixel_row in this_detection_over:
+        add_x = 0
+        add_y += 1
+        for pixel in pixel_row:
+            add_x += 1
+            if pixel[3] == 0:
+                this_detection_over[add_y - 1, add_x - 1] = result_image[y + add_y - 1, x + add_x - 1]
+    # Ajout de l'emoji sur le visage
+    result_image[y:y+h, x:x+w] = this_detection_over
     return result_image
 
 angry = cv2.imread('data/angry.png', -1)
@@ -65,8 +63,8 @@ while(True):
     faces = face_cascade.detectMultiScale(gray)
 
     for (x,y,w,h) in faces:
-        
         x, y, w, h = [int(i) for i in (x, y, w, h)]
+        coord = (x, y, w, h)
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2BGRA)
         face = frame[y:y+h, x:x+w]
         face_g = cv2.cvtColor(face ,cv2.COLOR_BGR2GRAY)
@@ -76,19 +74,19 @@ while(True):
 
         match emotion:
             case "angry":
-                frame = image_over(angry, frame, faces)
+                frame = image_over(angry, frame, coord)
             case "disgust":
-                frame = image_over(disgust, frame, faces)
+                frame = image_over(disgust, frame, coord)
             case "fear":
-                frame = image_over(fear, frame, faces)
+                frame = image_over(fear, frame, coord)
             case "happy":
-                frame = image_over(happy, frame, faces)
+                frame = image_over(happy, frame, coord)
             case "neutral":
-                frame = image_over(neutral, frame, faces)
+                frame = image_over(neutral, frame, coord)
             case "sad":
-                frame = image_over(sad, frame, faces)
+                frame = image_over(sad, frame, coord)
             case "surprise":
-                frame = image_over(surprise, frame, faces)
+                frame = image_over(surprise, frame, coord)
 
         cv2.imshow('video', frame)
         key=cv2.waitKey(1)
